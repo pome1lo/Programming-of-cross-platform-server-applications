@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <title>Document</title>
+</head>
+<script>
+    // async function taskTwo() {
+    //     const xhr = new XMLHttpRequest();
+    //     xhr.open('GET', `http://localhost:5000/fact?k=3`);
+    //     xhr.onload = function() {
+    //         if (xhr.status === 200) {
+    //             document.write(xhr.responseText);
+    //         }
+    //     };
+    //     xhr.send();
+    // }
+
+    async function taskThree() {
+        fetch(`http://localhost:5000/factList?k=3`, {mode: "no-cors"})
+            .then(response => response.text())
+            .then(data => console.log(data))
+            .catch(error => console.error(error));
+    }
+
+
+    function fetchh() {
+        const resultsDiv = document.getElementById('data');
+        const start = Date.now();
+        for (let x = 0; x < 20; x++) {
+        fetch(`http://localhost:5000/fact?k=${x}`)
+            .then(response => response.json())
+            .then(data => {
+                let time = Date.now() - start;
+                const resultH = document.createElement('h5');
+                resultH.textContent = 'res: ' + time + '-' + data.k + "/" + data.fact;
+                resultsDiv.appendChild(resultH);
+            });
+        }
+    }
+
+</script>
+<body style="background: #121212">
+    <div class="d-flex gap-2 justify-content-center py-5">
+        <button onclick="taskThree()" class="btn btn-primary d-inline-flex align-items-center" type="button">
+            Задание 2
+        </button>
+        <button onclick="fetchh()" class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">
+            Задание 3
+        </button>
+    </div>
+    <div class="d-flex gap-2 justify-content-center py-5">
+        <button onclick="taskThree()" class="btn btn-primary d-inline-flex align-items-center" type="button">
+            Задание 4 (test 1)
+        </button>
+        <button onclick="fetchh()" class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">
+            Задание 4 (test 2)
+        </button>
+    </div>
+
+    <div class="d-flex gap-2 justify-content-center py-5">
+        <button onclick="taskThree()" class="btn btn-primary d-inline-flex align-items-center" type="button">
+            Задание 5 (test 1)
+        </button>
+        <button onclick="fetchh()" class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">
+            Задание 5 (test 2)
+        </button>
+    </div>
+    <div id="data"></div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+</body>
+</html>
