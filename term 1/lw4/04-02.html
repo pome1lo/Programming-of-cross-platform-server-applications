@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>lw4</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+</head>
+
+<body style="background-color: #212529;">
+    <div id='get_result'></div>
+    <div class="d-flex gap-2 justify-content-center py-2">
+        <button onclick="Get()" class="btn btn-primary rounded-pill px-3" type="button">GET</button>
+    </div>
+
+    <div style="padding: 20px">
+        <div class='form-floating'>
+            <label for="ID">Идентификатор</label>
+            <input class="form-control" type='number' id='ID' min='0'/>
+        </div>
+        <div class='form-floating'>
+            <label for="Name" class='col-2'>ФИО</label>
+            <input class="form-control" type='text' id='Name'/>
+        </div>
+        <div class='form-floating'>
+            <label for="Bday" class='col-2'>Дата рождения</label>
+            <input class="form-control" type='date' id='Bday'/>
+        </div>
+        <div class="d-flex gap-2 justify-content-center py-2">
+            <button onclick="Post()" class="btn btn-primary rounded-pill px-3" type="button">Post</button>
+        </div>
+    </div>
+    <div class='form-floating'>
+        <label for="IDPut" class='col-2'>Идентификатор</label>
+        <input class="form-control" type='number' id='IDPut' min='0'/>
+    </div>
+    <div class='form-floating'>
+        <label for="NamePut" class='col-2'>ФИО</label>
+        <input class="form-control" type='text' id='NamePut'/>
+    </div>
+    <div class='form-floating'>
+        <label for="BdayPut" class='col-2'>Дата рождения</label>
+        <input class="form-control" type='date' id='BdayPut'/>
+    </div>
+    <div class="d-flex gap-2 justify-content-center py-2">
+        <button onclick="PUT()" class="btn btn-primary rounded-pill px-3" type="button">PUT</button>
+    </div>
+    <div class='form-floating'>
+        <label for="IDDel">Идентификатор</label>
+        <input class="form-control" type='number' id='IDDel' min='0'/>
+    </div>
+    <div class="d-flex gap-2 justify-content-center py-2">
+        <button onclick="Delete()" class="btn btn-primary rounded-pill px-3" type="button">Delete</button>
+    </div>
+
+    <script>
+        function Get() {
+            console.log('GET');
+            fetch(
+                'http://localhost:5000/api/db', {
+                    method:'GET', 
+                    mode: 'no-cors',
+                    headers:{ 
+                        'Content-Type': 'application/json; charset=utf-8',
+                        'Accept': 'application/json'
+                    }
+                }
+            )
+            .then(response => { 
+                return response.json();
+            })
+            .then((pdata) => {
+                console.log('pdata',pdata);
+                get_result.innerHTML='';
+                pdata.forEach(el => {
+                    get_result.innerHTML += (el.id + '. ' + el.name + ' ' + el.bday + '<br/>');
+                });
+            });
+        }
+        function Post() {
+            console.log('Post');
+            fetch('http://localhost:5000/api/db', {
+                method:'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Accept': 'application/json'
+                },
+                body:JSON.stringify({
+                    id: ID.value,
+                    name: Name.value,
+                    bday: Bday.value})}
+            )
+            .then(response => { 
+                return response.json();
+            })
+            .then((pdata)=> {
+                console.log('POST.pdata', pdata);
+            });
+        }
+        function PUT() {
+            console.log('PUT');
+            fetch('http://localhost:5000/api/db', {
+                method:'PUT',
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Accept': 'application/json'
+                },
+                body:JSON.stringify({
+                    id: IDPut.value, 
+                    name: NamePut.value,
+                    bday: BdayPut.value
+                })}
+            )
+            .then(response => {
+                return response.json();
+            })
+            .then((pdata)=> {
+                console.log('PUT.pdata', pdata);
+            });
+        }
+        function Delete() {
+            console.log('Delete');
+            fetch('http://localhost:5000/api/db', {
+                method: 'Delete',
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Accept': 'application/json'
+                },
+                body:JSON.stringify({
+                    id:IDDel.value,name: '0',bday:  '0'
+                })
+            }
+            )
+            .then(response=> { 
+                return response.json();
+            })
+            .then((pdata)=> {
+                console.log('Delete.pdata', pdata);
+            });
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+</body>
+</html>
