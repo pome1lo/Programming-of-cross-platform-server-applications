@@ -1,0 +1,177 @@
+<!doctype html >
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+    <style>
+        .wrapper {
+            width: 50em;
+            min-height: 200px; 
+            margin: 150px auto 0;
+        } 
+        .DataInputGroup {
+            width: 70%;
+        }
+    </style>
+    <script defer>
+        async function SendRequest() {
+            const method = document.querySelector('input[name="Method"]:checked').value;
+            const pulpit = document.querySelector('.Pulpit').value;
+            const pulpitName = document.querySelector('.PulpitName').value;
+            const faculty = document.querySelector('.Faculty').value;
+            const errorsBlock = document.querySelector('.ErrorsBlock').value;
+
+            let url = `http://localhost:3000/api/pulpits`;
+            const table = document.getElementById('data');
+            const data = {
+                pulpit: pulpit,
+                pulpitName: pulpitName,
+                faculty: faculty
+            };
+            let resultJson;
+            let onlyHeadersRowLeft = table.rows.length > 1;
+            while (onlyHeadersRowLeft) {
+                table.deleteRow(1);
+                onlyHeadersRowLeft = table.rows.length > 1;
+            }
+
+            let response;
+            switch (method) {
+                case "POST":
+                    try {
+                        response = await fetch(url, {
+                            method: method,
+                            body: JSON.stringify(data),
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
+                        if (response.status === 404 || response.status===400) {
+                            const text = await response.text();
+                            alert(text);
+                        } else {
+                            const result = await response.json();
+                            console.log(result[0]);
+                            alert("faculty : " + result[0].FACULTY + "  pulpit : " + result[0].PULPIT + " pulpit_name :" + result[0].PULPIT_NAME);
+                        }
+                    } catch (e) { 
+                        alert("Error: " + e.message); } break;
+                case "GET" :
+                    response = await fetch(url, {
+                        method: method, headers: { 'Content-Type': 'application/json' }
+                    });
+                    resultJson = await response.json();
+                    console.log(resultJson);
+                    createTableContentFromJson(table, resultJson)
+                    break;
+                case "PUT":
+                    try {
+                        response = await fetch(url, {
+                            method: method,
+                            body: JSON.stringify(data),
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+
+                        if (response.status === 404 || response.status===400) {
+                            const text = await response.text();
+                            alert(text);
+                        } else {
+                            const result = await response.json();
+                            console.log(result[0]);
+                            alert("faculty : " + result[0].FACULTY + "  pulpit : " + result[0].PULPIT + " pulpit_name :" + result[0].PULPIT_NAME);
+                        }
+
+                    } catch (e) { alert("Error: " + e.message); }
+
+                    break;
+                case "DELETE":
+                    url = url.concat(`/${pulpit}`);
+                    try {
+                        response = await fetch(url, {
+                            method: method,
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
+                        if (response.status === 404 || response.status===400 ) {
+                            const text = await response.text();
+                            alert(text);
+                        } else {
+                            const result = await response.json();
+                            console.log(result[0]);
+                            alert("faculty : " + result[0].FACULTY + "  pulpit : " + result[0].PULPIT + " pulpit_name :" + result[0].PULPIT_NAME);
+                        }
+                    } catch (e) { 
+                        alert("Error: " + e.message); } break;
+            }
+        }
+
+        function createTableContentFromJson(table, resultJson) {
+            resultJson.forEach(element => {
+                const pulpit = element.PULPIT;
+                const pulpitName = element.PULPIT_NAME;
+                const faculty = element.FACULTY;
+
+                const tr = document.createElement('tr');
+                const pulpitCell = document.createElement('td');
+                const pulpitNameCell = document.createElement('td');
+                const facultyCell = document.createElement('td');
+
+                pulpitCell.textContent = pulpit;
+                pulpitNameCell.textContent = pulpitName;
+                facultyCell.textContent = faculty;
+
+                tr.appendChild(pulpitCell);
+                tr.appendChild(pulpitNameCell);
+                tr.appendChild(facultyCell);
+
+                table.appendChild(tr);
+            });
+        }
+    </script>
+</head>
+<body>
+<div class="wrapper">
+    <div class="ErrorsBlock">
+
+    </div>
+    <div class="d-flex gap-1 ">
+        <div id="DataInputGroup" class="DataInputGroup d-grid gap-2">
+            <input class="Pulpit" type="text" placeholder="Кафедра">
+            <input class="PulpitName" type="text" placeholder="Имя кафедры">
+            <input class="Faculty" type="text" placeholder="Факультет">
+        </div> 
+        <Button  class="btn btn-primary" onclick="SendRequest()">Submit</Button>
+        <div class="Methods d-grid gap-2" >
+            <label>
+                <input type="radio" checked="true" name="Method" value="GET">GET
+            </label>
+            <label>
+                <input type="radio" name="Method" value="POST">POST
+            </label>
+            <label>
+                <input type="radio" name="Method" value="PUT">PUT
+            </label>
+            <label>
+                <input type="radio" name="Method" value="DELETE">DELETE
+            </label>
+        </div>
+    </div>
+    <table id="data" class="table">
+        <tr id="header">
+            <th>Кафедра</th>
+            <th>Название кафедры</th>
+            <th>Факультет</th>
+        </tr>
+    </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.min.js" integrity="sha384-Rx+T1VzGupg4BHQYs2gCW9It+akI2MM/mndMCy36UVfodzcJcF0GGLxZIzObiEfa" crossorigin="anonymous"></script>
+</body>
+</html>
