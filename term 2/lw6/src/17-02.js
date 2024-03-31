@@ -3,9 +3,8 @@ const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
+
 const redis = require('redis');
-
-
 const redisClient = redis.createClient("redis://127.0.0.1:6379");
 redisClient.connect();
 redisClient.on('error', function(error) {console.error('❌ Ошибка:', error);});
@@ -14,15 +13,14 @@ redisClient.on('connect', async function() {console.log('✅  Подключен
 const app = express();
 const port = 3000;
 
-// Подключение модели USERS
 const USERS = require('./database/models/Users');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-const ACCESS_TOKEN_SECRET = 'your_access_token_secret';
-const REFRESH_TOKEN_SECRET = 'your_refresh_token_secret';
+const ACCESS_TOKEN_SECRET = 'ACCESS_TOKEN_SECRET';
+const REFRESH_TOKEN_SECRET = 'REFRESH_TOKEN_SECRET';
 
 let refreshTokens = {};
 
@@ -49,10 +47,12 @@ app.post('/login', async (req, res) => {
         const accessToken = jwt.sign({ userId: user.id, username: user.username }, ACCESS_TOKEN_SECRET, { expiresIn: '10m' });
         const refreshToken = jwt.sign({ userId: user.id, username: user.username }, REFRESH_TOKEN_SECRET, { expiresIn: '24h' });
 
-        // Создание и сохранение токенов в Redis вместо использования объекта
-        redisClient.set(refreshToken, 24 * 60 * 60, username); // Сохраняем refreshToken на 24 часа
+        // Сохранение refreshToken в Redis с TTL (24 часа)
+        redisClient.set(refreshToken, 24 * 60 * 60, username); // Используем setex для установки TTL
 
-        refreshTokens[refreshToken] = user.username;
+        // Удаление строки ниже, так как теперь мы используем Redis для хранения refresh токенов
+        // refreshTokens[refreshToken] = user.username;
+
         res.cookie('accessToken', accessToken, { httpOnly: true, sameSite: 'Strict' });
         res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'Strict', path: '/refresh-token' });
         res.redirect('/resource');
@@ -93,36 +93,44 @@ app.post('/register', async (req, res) => {
     }
 });
 
-app.get('/refresh-token', (req, res) => {
+app.get('/refresh-token', async (req, res) => {
     console.log("🟦🟦🟦  get:refresh-token");
     const refreshToken = req.cookies.refreshToken;
-    redisClient.get(refreshToken, (err, result) => {
-        if (err || !result) return res.sendStatus(401);
+    if (!refreshToken) {
+        return res.sendStatus(401); // Нет refresh токена в куки
+    }
 
-        const user = JSON.parse(result);
+    try {
+        const result = await redisClient.get(refreshToken);
+        if (!result) {
+            return res.sendStatus(401); // Токен не найден в Redis
+        }
 
-        jwt.verify(refreshToken, REFRESH_TOKEN_SECRET, (err, decoded) => {
-            if (err) return res.sendStatus(403);
+        const decoded = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET);
+        // Токен валиден, создаем новые токены
+        const newAccessToken = jwt.sign({ userId: decoded.userId, username: decoded.username }, ACCESS_TOKEN_SECRET, { expiresIn: '10m' });
+        const newRefreshToken = jwt.sign({ userId: decoded.userId, username: decoded.username }, REFRESH_TOKEN_SECRET, { expiresIn: '24h' });
 
-            const newAccessToken = jwt.sign({ userId: user.userId, username: user.username }, ACCESS_TOKEN_SECRET, { expiresIn: '10m' });
-            const newRefreshToken = jwt.sign({ userId: user.userId, username: user.username }, REFRESH_TOKEN_SECRET, { expiresIn: '24h' });
+        // Удаляем старый Refresh токен из Redis и сохраняем новый
+        await redisClient.del(refreshToken);
+        // Используйте 'EX' для указания TTL в секундах
+        await redisClient.set(newRefreshToken, JSON.stringify({ userId: decoded.userId, username: decoded.username }), 'EX', 24 * 60 * 60);
 
-            // Удаление старого Refresh токена из Redis и сохранение нового
-            redisClient.del(refreshToken, (delErr) => {
-                if (delErr) return res.status(500).send('Internal Server Error');
+        res.cookie('accessToken', newAccessToken, { httpOnly: true, sameSite: 'Strict' });
+        res.cookie('refreshToken', newRefreshToken, { httpOnly: true, sameSite: 'Strict', path: '/refresh-token' });
 
-                redisClient.set(newRefreshToken, JSON.stringify(user), 'EX', 24 * 60 * 60, (setErr) => {
-                    if (setErr) return res.status(500).send('Internal Server Error');
-
-                    res.cookie('accessToken', newAccessToken, { httpOnly: true, sameSite: 'Strict' });
-                    res.cookie('refreshToken', newRefreshToken, { httpOnly: true, sameSite: 'Strict', path: '/refresh-token' });
-
-                    res.send('Токены обновлены');
-                });
-            });
-        });
-    });
+        res.send('Токены обновлены');
+    } catch (error) {
+        console.error('Ошибка при обновлении токена:', error);
+        if (error.name === 'TokenExpiredError') {
+            res.status(401).send('Refresh token expired');
+        } else {
+            res.status(401).send('Invalid refresh token');
+        }
+    }
 });
+
+
 
 app.get('/logout', (req, res) => {
     console.log("🟦🟦🟦  get:logout");
@@ -166,5 +174,6 @@ app.use((req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Сервер запущен на порту ${port}`);
+    console.log(`http://localhost:${port}`);
 });
+ 
