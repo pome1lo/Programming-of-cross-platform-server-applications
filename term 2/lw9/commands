@@ -1,0 +1,35 @@
+// Я не центр
+
+PS D:\FILES\University\3 course\2term\PSCP\lw9> openssl genrsa -out LAB.KEY 2048
+PS D:\FILES\University\3 course\2term\PSCP\lw9> openssl req -new -key LAB.key -out LAB.csr -sha256 -config LAB.cfg
+PS D:\FILES\University\3 course\2term\PSCP\lw9> node .\20-01.js
+
+
+
+
+// Я центр
+
+PS D:\FILES\University\3 course\2term\PSCP\lw9> openssl genrsa -des3 -out CA.key 2048
+Enter PEM pass phrase:
+Verifying - Enter PEM pass phrase:
+PS D:\FILES\University\3 course\2term\PSCP\lw9> openssl req -x509 -new -key CA.key -days 700 -sha256 -out CA.crt
+Enter pass phrase for CA.key:
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:by
+State or Province Name (full name) [Some-State]:Minsk
+Locality Name (eg, city) []:Minsk
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:paa
+Organizational Unit Name (eg, section) []:paa
+Common Name (e.g. server FQDN or YOUR name) []:paa
+Email Address []:
+PS D:\FILES\University\3 course\2term\PSCP\lw9> openssl x509 -req -in LAB.csr -CA CA.crt -CAkey CA.key -CAcreateserial -out LAB.crt -days 365 -sha256 -extensions v3_req -extfile LAB.cfg
+Certificate request self-signature ok
+subject=C=BY, ST=Minsk, L=Minsk, O=AVD, OU=AVD, CN=AVD
+Enter pass phrase for CA.key:
+PS D:\FILES\University\3 course\2term\PSCP\lw9>
