@@ -1,0 +1,117 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Phone Directory API",
+    "version": "1.0.0",
+    "description": "API for managing a phone directory"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local server"
+    }
+  ],
+  "paths": {
+    "/TS": {
+      "get": {
+        "summary": "Get list of phone entries",
+        "responses": {
+          "200": {
+            "description": "List of phone entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PhoneEntry"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Add a new phone entry",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhoneEntry"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Phone entry created"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update an existing phone entry",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhoneEntry"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Phone entry updated"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a phone entry",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Phone entry deleted"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PhoneEntry": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the phone entry"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the contact"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Phone number of the contact"
+          }
+        },
+        "required": ["id", "name", "phone"]
+      }
+    }
+  }
+}
